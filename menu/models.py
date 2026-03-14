@@ -11,6 +11,9 @@ class Category(models.Model):
         choices=Department.choices
     )
 
+    class Meta:
+        verbose_name_plural = 'Categories'
+
     def __str__(self):
         return f"{self.name} ({self.department})"
 
