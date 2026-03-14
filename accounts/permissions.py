@@ -3,7 +3,9 @@ from rest_framework.permissions import BasePermission
 
 class IsAdmin(BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role == 'admin'
+        return request.user.is_authenticated and (
+            request.user.role == 'admin' or request.user.is_superuser
+        )
 
 
 class IsWaiter(BasePermission):
@@ -23,7 +25,7 @@ class IsKitchen(BasePermission):
 
 class IsStaff(BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role in [
-            'admin', 'waiter', 'barman', 'kitchen'
-        ]
-```
+        return request.user.is_authenticated and (
+            request.user.is_superuser or
+            request.user.role in ['admin', 'waiter', 'barman', 'kitchen']
+        )

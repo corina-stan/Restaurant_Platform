@@ -1,0 +1,75 @@
+from rest_framework import serializers
+from .models import Order, OrderGroup, OrderItem
+from menu.serializers import ProductSerializer
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+    product_id = serializers.PrimaryKeyRelatedField(
+        queryset=__import__('menu.models', fromlist=['Product']).Product.objects.all(),
+        source='product',
+        write_only=True
+    )
+
+    class Meta:
+        model = OrderItem
+        fields = (
+            'id', 'product', 'product_id', 'quantity',
+            'unit_price', 'status', 'rejection_reason',
+            'created_at', 'group'
+        )
+        read_only_fields = ('unit_price', 'status', 'created_at')
+
+
+class OrderGroupSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, read_only=True)
+    total = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OrderGroup
+        fields = ('id', 'name', 'items', 'total')
+
+    def get_total(self, obj):
+        return sum(
+            item.get_total()
+            for item in obj.items.all()
+            if item.status != 'rejected'
+        )
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, read_only=True)
+    groups = OrderGroupSerializer(many=True, read_only=True)
+    table_number = serializers.IntegerField(
+        source='session.table.number',
+        read_only=True
+    )
+    total = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Order
+        fields = (
+            'id', 'session', 'waiter', 'status',
+            'created_at', 'updated_at', 'notes',
+            'items', 'groups', 'table_number', 'total'
+        )
+        read_only_fields = ('created_at', 'updated_at', 'waiter')
+
+    def get_total(self, obj):
+        return sum(
+            item.get_total()
+            for item in obj.items.all()
+            if item.status != 'rejected'
+        )
+
+
+class CreateOrderItemSerializer(serializers.Serializer):
+    product_id = serializers.IntegerField()
+    quantity = serializers.IntegerField(min_value=1, default=1)
+    group_id = serializers.IntegerField(required=False, allow_null=True)
+
+
+class CreateOrderSerializer(serializers.Serializer):
+    session_token = serializers.UUIDField()
+    notes = serializers.CharField(required=False, allow_blank=True)
+    items = CreateOrderItemSerializer(many=True)
