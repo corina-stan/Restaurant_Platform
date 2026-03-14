@@ -1,3 +1,6 @@
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -66,6 +69,24 @@ class CreateOrderView(APIView):
                 unit_price=product.price,
                 group=group
             )
+
+            # Notificare real-time
+            channel_layer = get_channel_layer()
+            department = product.category.department
+            async_to_sync(channel_layer.group_send)(
+            department,
+            {
+                'type': 'new_order_item',
+                'order_id': order.id,
+                'item_id': OrderItem.objects.filter(order=order, product=product).last().id,
+                'product_name': product.name,
+                'quantity': item_data['quantity'],
+                'table_number': session.table.number,
+                'notes': order.notes,
+                'timestamp': timezone.now().isoformat()
+            }
+)
+
 
         return Response(
             OrderSerializer(order).data,
@@ -157,5 +178,31 @@ class UpdateOrderItemStatusView(APIView):
         if new_status == 'rejected':
             item.rejection_reason = rejection_reason
         item.save()
+
+        channel_layer = get_channel_layer()
+
+        async_to_sync(channel_layer.group_send)(
+            f'table_{item.order.session.table.number}',
+            {
+                'type': 'order_update',
+                'order_id': item.order.id,
+                'item_id': item.id,
+                'status': new_status,
+                'product_name': item.product.name,
+                'message': f'{item.product.name} - {new_status}'
+            }
+        )
+
+        if new_status == 'ready':
+            async_to_sync(channel_layer.group_send)(
+                'waiters',
+                {
+                    'type': 'item_ready',
+                    'item_id': item.id,
+                    'product_name': item.product.name,
+                    'table_number': item.order.session.table.number,
+                    'order_id': item.order.id
+                }
+            )
 
         return Response(OrderItemSerializer(item).data)
