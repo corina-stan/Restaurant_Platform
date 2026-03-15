@@ -87,7 +87,17 @@ class CreateOrderView(APIView):
             }
 )
 
-
+        # Notificare ospatar - comanda noua
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            'waiters',
+            {
+                'type': 'new_order',
+                'order_id': order.id,
+                'table_number': session.table.number,
+            }
+        )
+        
         return Response(
             OrderSerializer(order).data,
             status=status.HTTP_201_CREATED

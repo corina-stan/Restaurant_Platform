@@ -166,3 +166,10 @@ class WaiterConsumer(AsyncWebsocketConsumer):
             'table_number': event['table_number'],
             'message': event['message']
         }))
+    
+    async def new_order(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'new_order',
+            'order_id': event['order_id'],
+            'table_number': event['table_number'],
+        }))
