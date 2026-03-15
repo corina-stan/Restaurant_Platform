@@ -112,7 +112,7 @@ class OrderDetailView(APIView):
 
 
 class TableOrdersView(APIView):
-    permission_classes = [IsStaff]
+    permission_classes = [AllowAny]
 
     def get(self, request, table_number):
         orders = Order.objects.filter(
