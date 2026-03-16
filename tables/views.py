@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny
 from django.utils import timezone
 from .models import Table, QRSession
 from .serializers import QRSessionSerializer
+from accounts.permissions import IsStaff
 
 
 class ScanQRView(APIView):
@@ -19,19 +20,19 @@ class ScanQRView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        QRSession.objects.filter(
+        session = QRSession.objects.filter(
             table=table,
             is_active=True
-        ).update(is_active=False, closed_at=timezone.now())
+        ).first()
 
-        session = QRSession.objects.create(table=table)
+        if not session:
+            session = QRSession.objects.create(table=table)
 
         return Response({
             'session_token': str(session.token),
             'table_number': table.number,
             'table_name': table.name,
-        }, status=status.HTTP_201_CREATED)
-
+        }, status=status.HTTP_200_OK)
 
 class ValidateQRView(APIView):
     permission_classes = [AllowAny]
@@ -49,3 +50,11 @@ class ValidateQRView(APIView):
                 {'valid': False, 'error': 'Sesiune invalidă sau expirată.'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+class AllTablesView(APIView):
+    permission_classes = [IsStaff]
+
+    def get(self, request):
+        from .serializers import TableSerializer
+        tables = Table.objects.filter(is_active=True).order_by('number')
+        return Response(TableSerializer(tables, many=True).data)

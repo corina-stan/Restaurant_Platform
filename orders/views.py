@@ -243,3 +243,61 @@ class UpdateOrderItemStatusView(APIView):
             )
 
         return Response(OrderItemSerializer(item).data)
+
+class CreateOrderGroupView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        order_id = request.data.get('order_id')
+        name = request.data.get('name')
+
+        if not order_id or not name:
+            return Response(
+                {'error': 'order_id și name sunt obligatorii.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            order = Order.objects.get(id=order_id, status='open')
+        except Order.DoesNotExist:
+            return Response(
+                {'error': 'Comanda nu există.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        group, created = OrderGroup.objects.get_or_create(
+            order=order,
+            name=name
+        )
+
+        return Response({
+            'id': group.id,
+            'name': group.name,
+            'order_id': order.id
+        }, status=status.HTTP_201_CREATED)
+
+class CreateEmptyOrderView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        try:
+            session = QRSession.objects.get(
+                token=request.data.get('session_token'),
+                is_active=True
+            )
+        except QRSession.DoesNotExist:
+            return Response(
+                {'error': 'Sesiune invalidă.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        existing = Order.objects.filter(
+            session=session,
+            status='open'
+        ).first()
+
+        if existing:
+            return Response({'id': existing.id})
+
+        order = Order.objects.create(session=session)
+        return Response({'id': order.id}, status=status.HTTP_201_CREATED)

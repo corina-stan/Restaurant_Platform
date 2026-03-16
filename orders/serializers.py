@@ -3,6 +3,17 @@ from .models import Order, OrderGroup, OrderItem
 from menu.serializers import ProductSerializer
 
 
+class PaymentSummarySerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    group = serializers.SerializerMethodField()
+    method = serializers.CharField()
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    tip = serializers.DecimalField(max_digits=8, decimal_places=2)
+    status = serializers.CharField()
+
+    def get_group(self, obj):
+        return obj.group.id if obj.group else None
+
 class OrderItemSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
     product_id = serializers.PrimaryKeyRelatedField(
@@ -40,6 +51,7 @@ class OrderGroupSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     groups = OrderGroupSerializer(many=True, read_only=True)
+    payments = PaymentSummarySerializer(many=True, read_only=True)
     table_number = serializers.IntegerField(
         source='session.table.number',
         read_only=True
@@ -51,7 +63,7 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'session', 'waiter', 'status',
             'created_at', 'updated_at', 'notes',
-            'items', 'groups', 'table_number', 'total'
+            'items', 'groups', 'table_number', 'total' , 'payments'
         )
         read_only_fields = ('created_at', 'updated_at', 'waiter')
 

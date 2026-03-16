@@ -69,6 +69,23 @@ class CreatePaymentView(APIView):
             status='completed'
         )
 
+        if group:
+            paid_group_ids = set(
+                Payment.objects.filter(
+                    order=order,
+                    status='completed'
+                ).values_list('group_id', flat=True)
+            )
+            all_group_ids = set(
+                order.groups.values_list('id', flat=True)
+            )
+            if all_group_ids and all_group_ids == paid_group_ids:
+                order.status = 'closed'
+                order.save()
+        else:
+            order.status = 'closed'
+            order.save()
+
         if not group:
             order.status = 'closed'
             order.save()
