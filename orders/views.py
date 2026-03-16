@@ -79,6 +79,7 @@ class CreateOrderView(APIView):
                 'type': 'new_order_item',
                 'order_id': order.id,
                 'item_id': OrderItem.objects.filter(order=order, product=product).last().id,
+                'product_id': product.id,  
                 'product_name': product.name,
                 'quantity': item_data['quantity'],
                 'table_number': session.table.number,
@@ -97,7 +98,7 @@ class CreateOrderView(APIView):
                 'table_number': session.table.number,
             }
         )
-        
+
         return Response(
             OrderSerializer(order).data,
             status=status.HTTP_201_CREATED

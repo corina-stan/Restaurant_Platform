@@ -44,6 +44,14 @@ class TableConsumer(AsyncWebsocketConsumer):
             'message': event['message']
         }))
 
+    async def product_availability(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'product_availability',
+            'product_id': event['product_id'],
+            'is_available': event['is_available'],
+            'product_name': event['product_name'],
+        }))
+
 
 class KitchenConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -73,6 +81,7 @@ class KitchenConsumer(AsyncWebsocketConsumer):
             'order_id': event['order_id'],
             'item_id': event['item_id'],
             'product_name': event['product_name'],
+            'product_id': event.get('product_id'),
             'quantity': event['quantity'],
             'table_number': event['table_number'],
             'notes': event.get('notes', ''),
@@ -84,6 +93,14 @@ class KitchenConsumer(AsyncWebsocketConsumer):
             'type': 'item_status_update',
             'item_id': event['item_id'],
             'status': event['status']
+        }))
+
+    async def product_availability(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'product_availability',
+            'product_id': event['product_id'],
+            'is_available': event['is_available'],
+            'product_name': event['product_name'],
         }))
 
 
@@ -114,6 +131,7 @@ class BarConsumer(AsyncWebsocketConsumer):
             'type': 'new_order_item',
             'order_id': event['order_id'],
             'item_id': event['item_id'],
+            'product_id': event.get('product_id'),    # adaugă această linie
             'product_name': event['product_name'],
             'quantity': event['quantity'],
             'table_number': event['table_number'],
@@ -126,6 +144,14 @@ class BarConsumer(AsyncWebsocketConsumer):
             'type': 'item_status_update',
             'item_id': event['item_id'],
             'status': event['status']
+        }))
+
+    async def product_availability(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'product_availability',
+            'product_id': event['product_id'],
+            'is_available': event['is_available'],
+            'product_name': event['product_name'],
         }))
 
 
@@ -172,4 +198,13 @@ class WaiterConsumer(AsyncWebsocketConsumer):
             'type': 'new_order',
             'order_id': event['order_id'],
             'table_number': event['table_number'],
+
+        }))
+    
+    async def product_availability(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'product_availability',
+            'product_id': event['product_id'],
+            'is_available': event['is_available'],
+            'product_name': event['product_name'],
         }))
