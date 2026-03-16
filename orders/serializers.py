@@ -16,7 +16,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'product', 'product_id', 'quantity',
             'unit_price', 'status', 'rejection_reason',
-            'created_at', 'group'
+            'created_at', 'group', 'notes'
         )
         read_only_fields = ('unit_price', 'status', 'created_at')
 
@@ -67,9 +67,11 @@ class CreateOrderItemSerializer(serializers.Serializer):
     product_id = serializers.IntegerField()
     quantity = serializers.IntegerField(min_value=1, default=1)
     group_id = serializers.IntegerField(required=False, allow_null=True)
+    notes = serializers.CharField(required=False, allow_blank=True, default='')
 
 
 class CreateOrderSerializer(serializers.Serializer):
     session_token = serializers.UUIDField()
+    order_id = serializers.IntegerField(required=False, allow_null=True)
     notes = serializers.CharField(required=False, allow_blank=True)
     items = CreateOrderItemSerializer(many=True)

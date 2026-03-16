@@ -82,7 +82,7 @@ class OrderItem(models.Model):
     rejection_reason = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    notes = models.TextField(blank=True) 
     def __str__(self):
         return f"{self.quantity}x {self.product.name} - {self.status}"
 

@@ -7,6 +7,7 @@ from .models import Category, Product
 from .serializers import CategorySerializer, ProductSerializer
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from orders.models import OrderItem
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -53,6 +54,16 @@ class ProductViewSet(viewsets.ModelViewSet):
         product = self.get_object()
         product.is_available = not product.is_available
         product.save()
+
+        if not product.is_available:
+            OrderItem.objects.filter(
+                product=product,
+                status__in=['pending', 'in_progress'],
+                order__status='open'
+            ).update(
+                status='rejected',
+                rejection_reason='Produs indisponibil'
+            )
 
         channel_layer = get_channel_layer()
         

@@ -34,10 +34,20 @@ class CreateOrderView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        order = Order.objects.create(
-            session=session,
-            notes=serializer.validated_data.get('notes', '')
-        )
+        order_id = serializer.validated_data.get('order_id')
+        if order_id:
+            try:
+                order = Order.objects.get(id=order_id, status='open')
+            except Order.DoesNotExist:
+                return Response(
+                    {'error': 'Comanda nu există sau e închisă.'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        else:
+            order = Order.objects.create(
+                session=session,
+                notes=serializer.validated_data.get('notes', '')
+            )
 
         for item_data in serializer.validated_data['items']:
             try:
@@ -46,7 +56,8 @@ class CreateOrderView(APIView):
                     is_available=True
                 )
             except Product.DoesNotExist:
-                order.delete()
+                if not order_id:
+                    order.delete()
                 return Response(
                     {'error': f'Produsul {item_data["product_id"]} nu există sau nu e disponibil.'},
                     status=status.HTTP_400_BAD_REQUEST
@@ -67,26 +78,41 @@ class CreateOrderView(APIView):
                 product=product,
                 quantity=item_data['quantity'],
                 unit_price=product.price,
-                group=group
+                group=group,
+                notes=item_data.get('notes', '')
             )
 
-            # Notificare real-time
             channel_layer = get_channel_layer()
             department = product.category.department
             async_to_sync(channel_layer.group_send)(
-            department,
+                department,
+                {
+                    'type': 'new_order_item',
+                    'order_id': order.id,
+                    'item_id': OrderItem.objects.filter(order=order, product=product).last().id,
+                    'product_id': product.id,
+                    'product_name': product.name,
+                    'quantity': item_data['quantity'],
+                    'table_number': session.table.number,
+                    'notes': item_data.get('notes', ''),
+                    'timestamp': timezone.now().isoformat()
+                }
+            )
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            'waiters',
             {
-                'type': 'new_order_item',
+                'type': 'new_order',
                 'order_id': order.id,
-                'item_id': OrderItem.objects.filter(order=order, product=product).last().id,
-                'product_id': product.id,  
-                'product_name': product.name,
-                'quantity': item_data['quantity'],
                 'table_number': session.table.number,
-                'notes': order.notes,
-                'timestamp': timezone.now().isoformat()
             }
-)
+        )
+
+        return Response(
+            OrderSerializer(order).data,
+            status=status.HTTP_201_CREATED
+        )
 
         # Notificare ospatar - comanda noua
         channel_layer = get_channel_layer()
