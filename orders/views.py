@@ -113,18 +113,7 @@ class CreateOrderView(APIView):
             OrderSerializer(order).data,
             status=status.HTTP_201_CREATED
         )
-
-        # Notificare ospatar - comanda noua
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            'waiters',
-            {
-                'type': 'new_order',
-                'order_id': order.id,
-                'table_number': session.table.number,
-            }
-        )
-
+             
         return Response(
             OrderSerializer(order).data,
             status=status.HTTP_201_CREATED
@@ -227,6 +216,18 @@ class UpdateOrderItemStatusView(APIView):
                 'status': new_status,
                 'product_name': item.product.name,
                 'message': f'{item.product.name} - {new_status}'
+            }
+        )
+
+        async_to_sync(channel_layer.group_send)(
+            'waiters',
+            {
+                'type': 'item_status_update',
+                'item_id': item.id,
+                'status': new_status,
+                'order_id': item.order.id,
+                'table_number': item.order.session.table.number,
+                'product_name': item.product.name,
             }
         )
 

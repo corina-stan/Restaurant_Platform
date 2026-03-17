@@ -5,6 +5,8 @@ from accounts.permissions import IsWaiter, IsBarman, IsStaff, IsAdmin
 from orders.models import Order, OrderGroup, OrderItem
 from .models import Payment
 from .serializers import PaymentSerializer
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 
 class CreatePaymentView(APIView):
@@ -89,6 +91,16 @@ class CreatePaymentView(APIView):
         if not group:
             order.status = 'closed'
             order.save()
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            'waiters',
+            {
+                'type': 'payment_completed',
+                'order_id': order.id,
+                'table_number': order.session.table.number,
+            }
+        )
 
         return Response(
             PaymentSerializer(payment).data,

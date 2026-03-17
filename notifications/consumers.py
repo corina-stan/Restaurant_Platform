@@ -208,3 +208,20 @@ class WaiterConsumer(AsyncWebsocketConsumer):
             'is_available': event['is_available'],
             'product_name': event['product_name'],
         }))
+    
+    async def item_status_update(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'item_status_update',
+            'item_id': event['item_id'],
+            'status': event['status'],
+            'order_id': event['order_id'],
+            'table_number': event['table_number'],
+            'product_name': event['product_name'],
+        }))
+
+    async def payment_completed(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'payment_completed',
+            'order_id': event['order_id'],
+            'table_number': event['table_number'],
+        }))

@@ -152,6 +152,8 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
 }
 
+
+
 ASGI_APPLICATION = 'config.asgi.application'
 
 CHANNEL_LAYERS = {
