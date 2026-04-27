@@ -73,7 +73,7 @@ class CreateOrderView(APIView):
                 except OrderGroup.DoesNotExist:
                     pass
 
-            OrderItem.objects.create(
+            order_item = OrderItem.objects.create(
                 order=order,
                 product=product,
                 quantity=item_data['quantity'],
@@ -81,6 +81,14 @@ class CreateOrderView(APIView):
                 group=group,
                 notes=item_data.get('notes', '')
             )
+
+            # Scade stocul ingredientelor conform retetarului doar daca produsul necesita reteta
+            if product.requires_recipe:
+                from decimal import Decimal
+                for recipe in product.recipe_items.all():
+                    ingredient = recipe.ingredient
+                    ingredient.current_stock -= (recipe.quantity * Decimal(str(item_data['quantity'])))
+                    ingredient.save()
 
             channel_layer = get_channel_layer()
             department = product.category.department
@@ -203,6 +211,14 @@ class UpdateOrderItemStatusView(APIView):
         item.status = new_status
         if new_status == 'rejected':
             item.rejection_reason = rejection_reason
+            # Refund stock doar daca produsul are retetar activ
+            if item.product.requires_recipe:
+                from decimal import Decimal
+                for recipe in item.product.recipe_items.all():
+                    ingredient = recipe.ingredient
+                    ingredient.current_stock += (recipe.quantity * Decimal(str(item.quantity)))
+                    ingredient.save()
+
         item.save()
 
         channel_layer = get_channel_layer()

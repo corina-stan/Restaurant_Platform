@@ -3,11 +3,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from accounts.permissions import IsAdmin, IsBarman, IsKitchen, IsStaff
-from .models import Category, Product
-from .serializers import CategorySerializer, ProductSerializer
+from .models import Category, Product, Ingredient, RecipeItem, StockReceipt, PurchaseInvoice
+from .serializers import CategorySerializer, ProductSerializer, IngredientSerializer, RecipeItemSerializer, StockReceiptSerializer, PurchaseInvoiceSerializer
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from orders.models import OrderItem
+from decimal import Decimal
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -95,3 +96,73 @@ class ProductViewSet(viewsets.ModelViewSet):
             'name': product.name,
             'is_available': product.is_available
         })
+
+
+class IngredientViewSet(viewsets.ModelViewSet):
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientSerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [IsStaff()]
+        return [IsAdmin()]
+
+
+class RecipeItemViewSet(viewsets.ModelViewSet):
+    serializer_class = RecipeItemSerializer
+
+    def get_queryset(self):
+        qs = RecipeItem.objects.all()
+        product_id = self.request.query_params.get('product')
+        if product_id:
+            qs = qs.filter(product_id=product_id)
+        return qs
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [IsStaff()]
+        return [IsAdmin()]
+
+
+class StockReceiptViewSet(viewsets.ModelViewSet):
+    queryset = StockReceipt.objects.all()
+    serializer_class = StockReceiptSerializer
+    permission_classes = [IsAdmin]
+
+class PurchaseInvoiceViewSet(viewsets.ModelViewSet):
+    queryset = PurchaseInvoice.objects.all().prefetch_related('items__ingredient').order_by('-date', '-created_at')
+    serializer_class = PurchaseInvoiceSerializer
+    permission_classes = [IsAdmin]
+
+    def create(self, request, *args, **kwargs):
+        try:
+            # Evitam mutarea directa a request.data
+            data = dict(request.data)
+            
+            # Extragem lista de produse
+            items_data = data.pop('items', [])
+
+            # Cream factura
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            invoice = serializer.save()
+
+            # Cream liniile de receptie
+            for item in items_data:
+                unit_price = item.get('unit_price_without_vat')
+                StockReceipt.objects.create(
+                    invoice=invoice,
+                    ingredient_id=item['ingredient'],
+                    quantity=Decimal(str(item['quantity'])),
+                    unit_price_without_vat=Decimal(str(unit_price)) if unit_price else None,
+                    vat_rate=int(item.get('vat_rate', 9))
+                )
+
+            # Reincarcam cu related fields pentru response
+            invoice_with_items = PurchaseInvoice.objects.prefetch_related('items__ingredient').get(id=invoice.id)
+            return Response(PurchaseInvoiceSerializer(invoice_with_items).data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            import traceback
+            with open('d:/GIT/Restaurant_Platform/debug_error.txt', 'w') as f:
+                f.write(traceback.format_exc())
+            raise e
