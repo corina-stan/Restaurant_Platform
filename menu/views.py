@@ -1,4 +1,4 @@
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -162,7 +162,4 @@ class PurchaseInvoiceViewSet(viewsets.ModelViewSet):
             invoice_with_items = PurchaseInvoice.objects.prefetch_related('items__ingredient').get(id=invoice.id)
             return Response(PurchaseInvoiceSerializer(invoice_with_items).data, status=status.HTTP_201_CREATED)
         except Exception as e:
-            import traceback
-            with open('d:/GIT/Restaurant_Platform/debug_error.txt', 'w') as f:
-                f.write(traceback.format_exc())
             raise e
