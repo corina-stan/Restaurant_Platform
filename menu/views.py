@@ -160,6 +160,15 @@ class PurchaseInvoiceViewSet(viewsets.ModelViewSet):
 
             # Reincarcam cu related fields pentru response
             invoice_with_items = PurchaseInvoice.objects.prefetch_related('items__ingredient').get(id=invoice.id)
+            
+            from orders.models import log_operation
+            log_operation(
+                user=request.user,
+                order=None,
+                operation_type="Recepție Marfă (NIR)",
+                description=f"A fost înregistrată factura de achiziție #{invoice.invoice_number} de la furnizorul '{invoice.supplier_name}', conținând {len(items_data)} linii de produse recepționate."
+            )
+
             return Response(PurchaseInvoiceSerializer(invoice_with_items).data, status=status.HTTP_201_CREATED)
         except Exception as e:
             raise e

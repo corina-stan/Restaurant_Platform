@@ -29,9 +29,21 @@ class ProductSerializer(serializers.ModelSerializer):
         return obj.recipe_items.exists()
 
 class IngredientSerializer(serializers.ModelSerializer):
+    last_purchased_quantity = serializers.SerializerMethodField()
+    is_low_stock = serializers.SerializerMethodField()
+
     class Meta:
         model = Ingredient
         fields = '__all__'
+
+    def get_last_purchased_quantity(self, obj):
+        qty = obj.get_last_purchased_quantity()
+        if qty is not None:
+            return float(qty)
+        return None
+
+    def get_is_low_stock(self, obj):
+        return obj.is_low_stock()
 
 class RecipeItemSerializer(serializers.ModelSerializer):
     ingredient_name = serializers.CharField(source='ingredient.name', read_only=True)

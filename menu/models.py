@@ -57,6 +57,24 @@ class Ingredient(models.Model):
         decimal_places=3, 
         default=0.000
     )
+    alert_threshold_percentage = models.PositiveIntegerField(
+        default=25,
+        help_text="Prag notificare stoc (%) - default 25% (un sfert)"
+    )
+
+    def get_last_purchased_quantity(self):
+        last_receipt = self.receipts.order_by('-created_at').first()
+        if last_receipt:
+            return last_receipt.quantity
+        return None
+
+    def is_low_stock(self):
+        from decimal import Decimal
+        last_qty = self.get_last_purchased_quantity()
+        if last_qty is not None and last_qty > 0:
+            threshold = last_qty * (Decimal(self.alert_threshold_percentage) / Decimal(100))
+            return self.current_stock < threshold
+        return False
 
     def __str__(self):
         return f"{self.name} ({self.current_stock} {self.unit})"

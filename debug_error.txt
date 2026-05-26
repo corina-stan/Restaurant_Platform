@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "D:\GIT\Restaurant_Platform\menu\views.py", line 163, in create
-    return Response(PurchaseInvoiceSerializer(invoice_with_items).data, status=status.HTTP_201_CREATED)
-                                                                               ^^^^^^
-NameError: name 'status' is not defined

@@ -6,10 +6,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from django.utils import timezone
-from accounts.permissions import IsWaiter, IsBarman, IsKitchen, IsStaff
+from accounts.permissions import IsWaiter, IsBarman, IsKitchen, IsStaff, IsAdmin
 from tables.models import QRSession
 from menu.models import Product
-from .models import Order, OrderGroup, OrderItem
+from .models import Order, OrderGroup, OrderItem, OperationLog
 from .serializers import (
     OrderSerializer, CreateOrderSerializer, OrderItemSerializer
 )
@@ -35,9 +35,16 @@ class CreateOrderView(APIView):
             )
 
         order_id = serializer.validated_data.get('order_id')
+        from .models import log_operation
         if order_id:
             try:
                 order = Order.objects.get(id=order_id, status='open')
+                log_operation(
+                    user=request.user,
+                    order=order,
+                    operation_type="Actualizare Comandă",
+                    description=f"S-au adăugat produse noi în comanda #{order.id} la masa {order.session.table.number}."
+                )
             except Order.DoesNotExist:
                 return Response(
                     {'error': 'Comanda nu există sau e închisă.'},
@@ -47,6 +54,12 @@ class CreateOrderView(APIView):
             order = Order.objects.create(
                 session=session,
                 notes=serializer.validated_data.get('notes', '')
+            )
+            log_operation(
+                user=request.user,
+                order=order,
+                operation_type="Creare Comandă",
+                description=f"A fost creată comanda #{order.id} la masa {session.table.number}."
             )
 
         for item_data in serializer.validated_data['items']:
@@ -220,6 +233,12 @@ class UpdateOrderItemStatusView(APIView):
                     ingredient.save()
 
         item.save()
+        log_operation(
+            user=request.user,
+            order=item.order,
+            operation_type="Schimbare Status Preparat",
+            description=f"Statusul preparatului '{item.product.name}' ({item.quantity}x) din comanda #{item.order.id} a fost schimbat în '{item.get_status_display()}'."
+        )
 
         channel_layer = get_channel_layer()
 
@@ -318,3 +337,101 @@ class CreateEmptyOrderView(APIView):
 
         order = Order.objects.create(session=session)
         return Response({'id': order.id}, status=status.HTTP_201_CREATED)
+
+
+class AdminReportsView(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        period = request.query_params.get('period', 'day') # day, week, month
+        breakdown = request.query_params.get('breakdown', 'total') # total, category, product
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+
+        items = OrderItem.objects.filter(
+            order__status='closed'
+        ).exclude(
+            status='rejected'
+        ).select_related('product__category', 'order')
+
+        if start_date:
+            items = items.filter(created_at__date__gte=start_date)
+        if end_date:
+            items = items.filter(created_at__date__lte=end_date)
+
+        from django.utils import timezone
+        import collections
+
+        data_map = collections.defaultdict(lambda: collections.defaultdict(float))
+        all_periods = set()
+
+        for item in items:
+            local_dt = timezone.localtime(item.created_at)
+            
+            if period == 'day':
+                period_key = local_dt.strftime('%Y-%m-%d')
+            elif period == 'week':
+                start_of_week = local_dt - timezone.timedelta(days=local_dt.weekday())
+                period_key = start_of_week.strftime('%Y-%m-%d') + " (Săpt)"
+            elif period == 'month':
+                period_key = local_dt.strftime('%Y-%m')
+            else:
+                period_key = local_dt.strftime('%Y-%m-%d')
+            
+            all_periods.add(period_key)
+
+            if breakdown == 'total':
+                group_key = 'Total Restaurant'
+            elif breakdown == 'category':
+                group_key = item.product.category.name if item.product.category else 'Fără Categorie'
+            elif breakdown == 'product':
+                group_key = item.product.name
+            else:
+                group_key = 'Total Restaurant'
+
+            sales = float(item.quantity * item.unit_price)
+            data_map[group_key][period_key] += sales
+
+        sorted_periods = sorted(list(all_periods))
+
+        datasets = []
+        for group_key, period_sales in data_map.items():
+            data_points = []
+            for p in sorted_periods:
+                data_points.append(round(period_sales.get(p, 0.0), 2))
+            
+            datasets.append({
+                'label': group_key,
+                'data': data_points
+            })
+
+        if not datasets:
+            datasets.append({
+                'label': 'Total Restaurant',
+                'data': []
+            })
+
+        return Response({
+            'labels': sorted_periods,
+            'datasets': datasets
+        })
+
+
+class AdminOperationLogsView(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        logs = OperationLog.objects.all().select_related('user', 'order')[:200]
+        data = []
+        for log in logs:
+            data.append({
+                'id': log.id,
+                'user_name': log.user_name or (log.user.username if log.user else 'Sistem/Client'),
+                'user_role': log.user_role or (log.user.role if log.user else 'client'),
+                'order_id': log.order.id if log.order else None,
+                'order_number': log.order_number or (str(log.order.id) if log.order else ''),
+                'operation_type': log.operation_type,
+                'description': log.description,
+                'created_at': log.created_at.isoformat()
+            })
+        return Response(data)

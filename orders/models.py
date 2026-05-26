@@ -88,3 +88,57 @@ class OrderItem(models.Model):
 
     def get_total(self):
         return self.quantity * self.unit_price
+
+
+class OperationLog(models.Model):
+    user = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='operation_logs'
+    )
+    user_name = models.CharField(max_length=150, blank=True)
+    user_role = models.CharField(max_length=50, blank=True)
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='operation_logs'
+    )
+    order_number = models.CharField(max_length=50, blank=True)
+    operation_type = models.CharField(max_length=100)
+    description = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.operation_type} - {self.user_name or 'Client/Sistem'} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+
+
+def log_operation(user, order, operation_type, description):
+    user_name = ""
+    user_role = ""
+    if user and not user.is_anonymous:
+        user_name = user.username
+        user_role = user.role or "client"
+    else:
+        user_name = "Client/Sistem"
+        user_role = "client"
+
+    order_number = ""
+    if order:
+        order_number = str(order.id)
+
+    return OperationLog.objects.create(
+        user=None if (user and user.is_anonymous) else user,
+        user_name=user_name,
+        user_role=user_role,
+        order=order,
+        order_number=order_number,
+        operation_type=operation_type,
+        description=description
+    )

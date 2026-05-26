@@ -8,19 +8,26 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from accounts.models import User
-from menu.models import Category, Product
-from orders.models import Order, OrderGroup, OrderItem
+from menu.models import Category, Product, Ingredient, StockReceipt, PurchaseInvoice
+from orders.models import Order, OrderGroup, OrderItem, OperationLog
 from payments.models import Payment
 from tables.models import Table, QRSession
 
 def clear_data():
     print("Stergem datele anterioare (exceptand userii)...")
+    OperationLog.objects.all().delete()
     Payment.objects.all().delete()
     OrderItem.objects.all().delete()
     OrderGroup.objects.all().delete()
     Order.objects.all().delete()
     QRSession.objects.all().delete()
     Table.objects.all().delete()
+    
+    # Curatam stocurile si facturile aferente
+    StockReceipt.objects.all().delete()
+    PurchaseInvoice.objects.all().delete()
+    Ingredient.objects.all().delete()
+    
     Product.objects.all().delete()
     Category.objects.all().delete()
     print("Datele au fost sterse!")

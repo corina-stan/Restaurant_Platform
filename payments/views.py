@@ -92,6 +92,20 @@ class CreatePaymentView(APIView):
             order.status = 'closed'
             order.save()
 
+        from orders.models import log_operation
+        method_label = payment.get_method_display()
+        if group:
+            desc = f"A fost înregistrată plata de {amount:.2f} lei (+ bacșiș {tip:.2f} lei) prin {method_label} pentru grupul '{group.name}' din comanda #{order.id}. Starea comenzii: {order.get_status_display()}."
+        else:
+            desc = f"A fost înregistrată plata de {amount:.2f} lei (+ bacșiș {tip:.2f} lei) prin {method_label} pentru comanda #{order.id}. Starea comenzii: {order.get_status_display()}."
+        
+        log_operation(
+            user=request.user,
+            order=order,
+            operation_type="Plată și Închidere",
+            description=desc
+        )
+
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             'waiters',
