@@ -9,7 +9,7 @@ from django.utils import timezone
 from accounts.permissions import IsWaiter, IsBarman, IsKitchen, IsStaff, IsAdmin
 from tables.models import QRSession
 from menu.models import Product
-from .models import Order, OrderGroup, OrderItem, OperationLog
+from .models import Order, OrderGroup, OrderItem, OperationLog, log_operation
 from .serializers import (
     OrderSerializer, CreateOrderSerializer, OrderItemSerializer
 )
@@ -35,7 +35,6 @@ class CreateOrderView(APIView):
             )
 
         order_id = serializer.validated_data.get('order_id')
-        from .models import log_operation
         if order_id:
             try:
                 order = Order.objects.get(id=order_id, status='open')
@@ -128,11 +127,6 @@ class CreateOrderView(APIView):
                 'order_id': order.id,
                 'table_number': session.table.number,
             }
-        )
-
-        return Response(
-            OrderSerializer(order).data,
-            status=status.HTTP_201_CREATED
         )
              
         return Response(

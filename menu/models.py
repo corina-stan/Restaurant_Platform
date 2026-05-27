@@ -104,9 +104,34 @@ class RecipeItem(models.Model):
         return f"{self.quantity} {self.ingredient.unit} de {self.ingredient.name} pentru {self.product.name}"
 
 
+class Supplier(models.Model):
+    name = models.CharField(max_length=150, unique=True)
+    fiscal_code = models.CharField(
+        max_length=50, 
+        blank=True, 
+        help_text="CUI / CIF"
+    )
+    trade_registry_number = models.CharField(
+        max_length=100, 
+        blank=True, 
+        help_text="Număr înregistrare Registrul Comerțului"
+    )
+    address = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 class PurchaseInvoice(models.Model):
     invoice_number = models.CharField(max_length=50)
     supplier_name = models.CharField(max_length=150)
+    supplier = models.ForeignKey(
+        Supplier,
+        on_delete=models.PROTECT,
+        related_name='invoices',
+        null=True,
+        blank=True
+    )
     date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
 

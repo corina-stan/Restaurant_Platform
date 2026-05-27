@@ -8,7 +8,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 from accounts.models import User
-from menu.models import Category, Product, Ingredient, StockReceipt, PurchaseInvoice
+from menu.models import Category, Product, Ingredient, StockReceipt, PurchaseInvoice, RecipeItem, Supplier
 from orders.models import Order, OrderGroup, OrderItem, OperationLog
 from payments.models import Payment
 from tables.models import Table, QRSession
@@ -23,10 +23,12 @@ def clear_data():
     QRSession.objects.all().delete()
     Table.objects.all().delete()
     
-    # Curatam stocurile si facturile aferente
+    # Curatam retetele si stocurile pentru a evita ProtectedError pe ingrediente
+    RecipeItem.objects.all().delete()
     StockReceipt.objects.all().delete()
     PurchaseInvoice.objects.all().delete()
     Ingredient.objects.all().delete()
+    Supplier.objects.all().delete()
     
     Product.objects.all().delete()
     Category.objects.all().delete()
@@ -131,10 +133,38 @@ def seed_tables():
     for i in range(1, 16):
         Table.objects.create(number=i, name=f'Masa {i}')
 
+def seed_suppliers():
+    print("Adaugam furnizori demo...")
+    Supplier.objects.create(
+        name="Metro Cash & Carry",
+        fiscal_code="RO123456",
+        trade_registry_number="J40/1111/1996",
+        address="Bulevardul Theodor Pallady 51, București"
+    )
+    Supplier.objects.create(
+        name="Selgros Cash & Carry",
+        fiscal_code="RO789012",
+        trade_registry_number="J08/2222/2001",
+        address="Calea București 231, Brașov"
+    )
+    Supplier.objects.create(
+        name="Auchan România",
+        fiscal_code="RO345678",
+        trade_registry_number="J40/3333/2005",
+        address="Strada Brașov 25, București"
+    )
+    Supplier.objects.create(
+        name="Maravela Group SRL",
+        fiscal_code="RO901234",
+        trade_registry_number="J12/4444/2012",
+        address="Strada Bună Ziua 12, Cluj-Napoca"
+    )
+
 if __name__ == '__main__':
     print("Incepem seed-ul bazei de date...")
     clear_data()
     seed_users()
+    seed_suppliers()
     seed_menu()
     seed_tables()
     print("Baza de date a fost populata cu succes!")

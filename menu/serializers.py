@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Product, Ingredient, RecipeItem, StockReceipt, PurchaseInvoice
+from .models import Category, Product, Ingredient, RecipeItem, StockReceipt, PurchaseInvoice, Supplier
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -62,10 +62,23 @@ class StockReceiptSerializer(serializers.ModelSerializer):
         fields = ('id', 'invoice', 'ingredient', 'ingredient_name', 'ingredient_unit', 'quantity', 'unit_price_without_vat', 'vat_rate', 'created_at')
         read_only_fields = ('created_at',)
 
+class SupplierSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Supplier
+        fields = '__all__'
+
 class PurchaseInvoiceSerializer(serializers.ModelSerializer):
     items = StockReceiptSerializer(many=True, read_only=True)
+    supplier = SupplierSerializer(read_only=True)
+    supplier_id = serializers.PrimaryKeyRelatedField(
+        queryset=Supplier.objects.all(),
+        source='supplier',
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
 
     class Meta:
         model = PurchaseInvoice
-        fields = ('id', 'invoice_number', 'supplier_name', 'date', 'created_at', 'items')
+        fields = ('id', 'invoice_number', 'supplier_name', 'supplier', 'supplier_id', 'date', 'created_at', 'items')
         read_only_fields = ('created_at',)

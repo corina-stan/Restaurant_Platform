@@ -88,10 +88,6 @@ class CreatePaymentView(APIView):
             order.status = 'closed'
             order.save()
 
-        if not group:
-            order.status = 'closed'
-            order.save()
-
         from orders.models import log_operation
         method_label = payment.get_method_display()
         if group:

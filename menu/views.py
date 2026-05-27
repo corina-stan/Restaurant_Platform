@@ -3,8 +3,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from accounts.permissions import IsAdmin, IsBarman, IsKitchen, IsStaff
-from .models import Category, Product, Ingredient, RecipeItem, StockReceipt, PurchaseInvoice
-from .serializers import CategorySerializer, ProductSerializer, IngredientSerializer, RecipeItemSerializer, StockReceiptSerializer, PurchaseInvoiceSerializer
+from .models import Category, Product, Ingredient, RecipeItem, StockReceipt, PurchaseInvoice, Supplier
+from .serializers import CategorySerializer, ProductSerializer, IngredientSerializer, RecipeItemSerializer, StockReceiptSerializer, PurchaseInvoiceSerializer, SupplierSerializer
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from orders.models import OrderItem
@@ -129,6 +129,16 @@ class StockReceiptViewSet(viewsets.ModelViewSet):
     serializer_class = StockReceiptSerializer
     permission_classes = [IsAdmin]
 
+class SupplierViewSet(viewsets.ModelViewSet):
+    queryset = Supplier.objects.all().order_by('name')
+    serializer_class = SupplierSerializer
+    permission_classes = [IsAdmin]
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [IsStaff()]
+        return [IsAdmin()]
+
 class PurchaseInvoiceViewSet(viewsets.ModelViewSet):
     queryset = PurchaseInvoice.objects.all().prefetch_related('items__ingredient').order_by('-date', '-created_at')
     serializer_class = PurchaseInvoiceSerializer
@@ -146,6 +156,11 @@ class PurchaseInvoiceViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             invoice = serializer.save()
+
+            # Daca am asociat un furnizor relational, ne asiguram ca salvam si supplier_name
+            if invoice.supplier and (not invoice.supplier_name or invoice.supplier_name != invoice.supplier.name):
+                invoice.supplier_name = invoice.supplier.name
+                invoice.save()
 
             # Cream liniile de receptie
             for item in items_data:
