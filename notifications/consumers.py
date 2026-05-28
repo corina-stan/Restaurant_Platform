@@ -52,6 +52,13 @@ class TableConsumer(AsyncWebsocketConsumer):
             'product_name': event['product_name'],
         }))
 
+    async def payment_completed(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'payment_completed',
+            'order_id': event['order_id'],
+            'group_id': event.get('group_id'),
+        }))
+
 
 class KitchenConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -192,6 +199,17 @@ class WaiterConsumer(AsyncWebsocketConsumer):
             'table_number': event['table_number'],
             'message': event['message']
         }))
+
+    async def bill_requested(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'bill_requested',
+            'table_number': event['table_number'],
+            'payment_method': event['payment_method'],
+            'tip': event['tip'],
+            'message': event['message'],
+            'group_name': event.get('group_name'),
+            'group_id': event.get('group_id'),
+        }))
     
     async def new_order(self, event):
         await self.send(text_data=json.dumps({
@@ -224,4 +242,5 @@ class WaiterConsumer(AsyncWebsocketConsumer):
             'type': 'payment_completed',
             'order_id': event['order_id'],
             'table_number': event['table_number'],
+            'group_id': event.get('group_id'),
         }))

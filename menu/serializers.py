@@ -80,5 +80,5 @@ class PurchaseInvoiceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PurchaseInvoice
-        fields = ('id', 'invoice_number', 'supplier_name', 'supplier', 'supplier_id', 'date', 'created_at', 'items')
+        fields = ('id', 'nir_number', 'invoice_number', 'supplier_name', 'supplier', 'supplier_id', 'date', 'created_at', 'items')
         read_only_fields = ('created_at',)

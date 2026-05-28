@@ -123,6 +123,7 @@ class Supplier(models.Model):
 
 
 class PurchaseInvoice(models.Model):
+    nir_number = models.PositiveIntegerField(null=True, blank=True, unique=True)
     invoice_number = models.CharField(max_length=50)
     supplier_name = models.CharField(max_length=150)
     supplier = models.ForeignKey(
@@ -135,8 +136,15 @@ class PurchaseInvoice(models.Model):
     date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        if not self.nir_number:
+            from django.db.models import Max
+            max_nir = PurchaseInvoice.objects.aggregate(Max('nir_number'))['nir_number__max']
+            self.nir_number = (max_nir or 0) + 1
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"Factura {self.invoice_number} - {self.supplier_name}"
+        return f"NIR #{self.nir_number or self.id} (Factura {self.invoice_number} - {self.supplier_name})"
 
 class StockReceipt(models.Model):
     invoice = models.ForeignKey(

@@ -56,6 +56,10 @@ class OrderSerializer(serializers.ModelSerializer):
         source='session.table.number',
         read_only=True
     )
+    bill_requested = serializers.BooleanField(source='session.bill_requested', read_only=True)
+    bill_payment_method = serializers.CharField(source='session.bill_payment_method', read_only=True)
+    bill_tip = serializers.DecimalField(source='session.bill_tip', max_digits=8, decimal_places=2, read_only=True)
+    waiter_called = serializers.BooleanField(source='session.waiter_called', read_only=True)
     total = serializers.SerializerMethodField()
 
     class Meta:
@@ -63,7 +67,8 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'session', 'waiter', 'status',
             'created_at', 'updated_at', 'notes',
-            'items', 'groups', 'table_number', 'total' , 'payments'
+            'items', 'groups', 'table_number', 'total', 'payments',
+            'bill_requested', 'bill_payment_method', 'bill_tip', 'waiter_called'
         )
         read_only_fields = ('created_at', 'updated_at', 'waiter')
 

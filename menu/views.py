@@ -187,3 +187,64 @@ class PurchaseInvoiceViewSet(viewsets.ModelViewSet):
             return Response(PurchaseInvoiceSerializer(invoice_with_items).data, status=status.HTTP_201_CREATED)
         except Exception as e:
             raise e
+
+    from django.db import transaction
+
+    @transaction.atomic
+    def update(self, request, *args, **kwargs):
+        try:
+            partial = kwargs.pop('partial', False)
+            instance = self.get_object()
+            
+            # Evitam mutarea directa a request.data
+            data = dict(request.data)
+            
+            # Extragem lista de produse
+            items_data = data.pop('items', None)
+
+            # Modificam factura
+            serializer = self.get_serializer(instance, data=data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            invoice = serializer.save()
+
+            # Daca am asociat un furnizor relational, ne asiguram ca salvam si supplier_name
+            if invoice.supplier and (not invoice.supplier_name or invoice.supplier_name != invoice.supplier.name):
+                invoice.supplier_name = invoice.supplier.name
+                invoice.save()
+
+            if items_data is not None:
+                # 1. Scadem stocul ingredientelor din vechile linii ale acestei facturi
+                old_items = list(instance.items.all())
+                for item in old_items:
+                    ingredient = item.ingredient
+                    ingredient.current_stock -= item.quantity
+                    ingredient.save()
+
+                # 2. Stergem vechile linii de receptie
+                instance.items.all().delete()
+
+                # 3. Cream noile linii de receptie, care vor adauga automat noul stoc
+                for item in items_data:
+                    unit_price = item.get('unit_price_without_vat')
+                    StockReceipt.objects.create(
+                        invoice=invoice,
+                        ingredient_id=item['ingredient'],
+                        quantity=Decimal(str(item['quantity'])),
+                        unit_price_without_vat=Decimal(str(unit_price)) if unit_price else None,
+                        vat_rate=int(item.get('vat_rate', 9))
+                    )
+
+            # Reincarcam cu related fields pentru response
+            invoice_with_items = PurchaseInvoice.objects.prefetch_related('items__ingredient').get(id=invoice.id)
+            
+            from orders.models import log_operation
+            log_operation(
+                user=request.user,
+                order=None,
+                operation_type="Modificare Recepție (NIR)",
+                description=f"A fost modificată factura de achiziție #{invoice.invoice_number} de la furnizorul '{invoice.supplier_name}'."
+            )
+
+            return Response(PurchaseInvoiceSerializer(invoice_with_items).data)
+        except Exception as e:
+            raise e

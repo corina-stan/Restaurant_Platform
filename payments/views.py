@@ -1,3 +1,4 @@
+from decimal import Decimal, InvalidOperation
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -16,7 +17,14 @@ class CreatePaymentView(APIView):
         order_id = request.data.get('order_id')
         group_id = request.data.get('group_id')
         method = request.data.get('method')
-        tip = request.data.get('tip', 0)
+        
+        try:
+            tip_val = request.data.get('tip', 0)
+            if tip_val is None:
+                tip_val = 0
+            tip = Decimal(str(tip_val))
+        except (InvalidOperation, ValueError, TypeError):
+            tip = Decimal('0.00')
 
         if not order_id or not method:
             return Response(
@@ -88,6 +96,14 @@ class CreatePaymentView(APIView):
             order.status = 'closed'
             order.save()
 
+        if order.status == 'closed':
+            from django.utils import timezone
+            session = order.session
+            if session:
+                session.is_active = False
+                session.closed_at = timezone.now()
+                session.save()
+
         from orders.models import log_operation
         method_label = payment.get_method_display()
         if group:
@@ -109,6 +125,16 @@ class CreatePaymentView(APIView):
                 'type': 'payment_completed',
                 'order_id': order.id,
                 'table_number': order.session.table.number,
+                'group_id': group.id if group else None,
+            }
+        )
+
+        async_to_sync(channel_layer.group_send)(
+            f'table_{order.session.table.number}',
+            {
+                'type': 'payment_completed',
+                'order_id': order.id,
+                'group_id': group.id if group else None,
             }
         )
 
@@ -161,4 +187,17 @@ class OrderPaymentsView(APIView):
             )
 
         payments = Payment.objects.filter(order=order)
+        return Response(PaymentSerializer(payments, many=True).data)
+
+
+class RecentPaymentsView(APIView):
+    permission_classes = [IsStaff]
+
+    def get(self, request):
+        if request.user.role == 'admin':
+            payments = Payment.objects.filter(status='completed')
+        else:
+            payments = Payment.objects.filter(status='completed', collected_by=request.user)
+        
+        payments = payments.select_related('order', 'collected_by').prefetch_related('order__items__product').order_by('-created_at')[:50]
         return Response(PaymentSerializer(payments, many=True).data)
