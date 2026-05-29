@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Payment
+from .models import Payment, ZReport
 from orders.serializers import OrderSerializer
 
 
@@ -23,3 +23,19 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     def get_total(self, obj):
         return obj.get_total()
+
+
+class ZReportSerializer(serializers.ModelSerializer):
+    waiter_username = serializers.CharField(source='waiter.username', read_only=True)
+    payments = PaymentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = ZReport
+        fields = (
+            'id', 'number', 'waiter', 'waiter_username', 'created_at',
+            'total_amount', 'total_tip', 'cash_amount', 'card_amount',
+            'ticket_amount', 'cash_tip', 'card_tip', 'ticket_tip',
+            'vat_11_gross', 'vat_11_net', 'vat_11_amount',
+            'vat_21_gross', 'vat_21_net', 'vat_21_amount',
+            'payments_count', 'payments'
+        )

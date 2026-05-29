@@ -22,7 +22,7 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = (
             'id', 'name', 'description', 'price',
-            'prep_time', 'is_available', 'requires_recipe', 'category', 'category_id', 'has_recipe'
+            'prep_time', 'is_available', 'requires_recipe', 'image', 'category', 'category_id', 'has_recipe'
         )
 
     def get_has_recipe(self, obj):
