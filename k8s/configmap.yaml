@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: restaurant-config
+  labels:
+    app: restaurant
+data:
+  DEBUG: "False"
+  DB_HOST: "postgres-service"
+  DB_PORT: "5432"
+  DB_NAME: "restaurant_db"
+  DB_USER: "restaurant_user"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  ALLOWED_HOSTS: "restaurant.scs-solutions.eu,backend-service,127.0.0.1,localhost"
