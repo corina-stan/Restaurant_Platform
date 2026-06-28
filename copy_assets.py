@@ -24,7 +24,30 @@ def main():
         'bere_heineken_1782636579595.png',
         'bere_stella_1782636596274.png',
         'bere_corona_1782636610484.png',
-        'pizza_margherita_1782636624592.png'
+        'pizza_margherita_1782636624592.png',
+        'cocktail_mojito_1782669572600.png',
+        'cocktail_margarita_1782669587044.png',
+        'cocktail_cuba_libre_1782669600661.png',
+        'cocktail_pina_colada_1782669612557.png',
+        'cocktail_aperol_spritz_1782669625472.png',
+        'cocktail_gin_tonic_1782669641120.png',
+        'pizza_diavola_1782669886242.png',
+        'pizza_quattro_formaggi_1782669898858.png',
+        'pizza_prosciutto_funghi_1782669910856.png',
+        'pizza_capricciosa_1782669923729.png',
+        'pizza_vegetariana_1782669936827.png',
+        'pasta_carbonara_1782670027641.png',
+        'pasta_milanese_1782670040451.png',
+        'pasta_arrabiata_1782670054626.png',
+        'pasta_bolognese_1782670068692.png',
+        'pasta_tortellini_1782670083750.png',
+        'cafea_espresso_1782670227502.png',
+        'cafea_cappuccino_static.png',
+        'cafea_latte_static.png',
+        'cafea_frappe_static.png',
+        'racoritoare_coca_cola_static.png',
+        'racoritoare_apa_plata_static.png',
+        'racoritoare_limonada_static.png'
     ]
     
     copied_count = 0

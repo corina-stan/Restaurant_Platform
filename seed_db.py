@@ -80,65 +80,32 @@ LOCAL_GENERATED_IMAGES = {
     'Stella Artois 330ml': 'bere_stella_1782636596274.png',
     'Corona 330ml': 'bere_corona_1782636610484.png',
     'Margherita': 'pizza_margherita_1782636624592.png',
+    'Mojito': 'cocktail_mojito_1782669572600.png',
+    'Margarita': 'cocktail_margarita_1782669587044.png',
+    'Cuba Libre': 'cocktail_cuba_libre_1782669600661.png',
+    'Pina Colada': 'cocktail_pina_colada_1782669612557.png',
+    'Aperol Spritz': 'cocktail_aperol_spritz_1782669625472.png',
+    'Gin Tonic': 'cocktail_gin_tonic_1782669641120.png',
+    'Diavola': 'pizza_diavola_1782669886242.png',
+    'Quattro Formaggi': 'pizza_quattro_formaggi_1782669898858.png',
+    'Prosciutto e Funghi': 'pizza_prosciutto_funghi_1782669910856.png',
+    'Capricciosa': 'pizza_capricciosa_1782669923729.png',
+    'Vegetariana': 'pizza_vegetariana_1782669936827.png',
+    'Spaghetti Carbonara': 'pasta_carbonara_1782670027641.png',
+    'Penne Milanese': 'pasta_milanese_1782670040451.png',
+    'Penne Arrabiata': 'pasta_arrabiata_1782670054626.png',
+    'Tagliatelle Bolognese': 'pasta_bolognese_1782670068692.png',
+    'Tortellini al Forno': 'pasta_tortellini_1782670083750.png',
+    'Espresso': 'cafea_espresso_1782670227502.png',
+    'Coca Cola 330ml': 'racoritoare_coca_cola_static.png',
+    'Apa plata 500ml': 'racoritoare_apa_plata_static.png',
+    'Limonada cu menta 400ml': 'racoritoare_limonada_static.png',
+    'Cappuccino': 'cafea_cappuccino_static.png',
+    'Caffe Latte': 'cafea_latte_static.png',
+    'Frappe': 'cafea_frappe_static.png',
 }
 
-PRODUCT_IMAGES = {
-    # PIZZA
-    'Margherita': '',
-    'Diavola': 'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=600&auto=format&fit=crop',
-    'Quattro Formaggi': 'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=600&auto=format&fit=crop',
-    'Prosciutto e Funghi': 'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=600&auto=format&fit=crop',
-    'Capricciosa': 'https://images.unsplash.com/photo-1541745711172-69761543b6ef?w=600&auto=format&fit=crop',
-    'Vegetariana': 'https://images.unsplash.com/photo-1506354666786-959d6d497f1a?w=600&auto=format&fit=crop',
-
-    # PASTE
-    'Spaghetti Carbonara': 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=600&auto=format&fit=crop',
-    'Penne Milanese': 'https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=600&auto=format&fit=crop',
-    'Penne Arrabiata': 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=600&auto=format&fit=crop',
-    'Tagliatelle Bolognese': 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?w=600&auto=format&fit=crop',
-    'Tortellini al Forno': 'https://images.unsplash.com/photo-1621996346565-e6db0abd7140?w=600&auto=format&fit=crop',
-
-    # DESERT
-    'Papanasi cu smantana si dulceata': '',
-    'Tiramisu': '',
-    'Clatite cu fineti': '',
-    'Lava Cake': '',
-    'Cheesecake': '',
-
-    # CIORBE
-    'Ciorba de burta': '',
-    'Ciorba radauteana': '',
-    'Ciorba de vacuta': '',
-
-    # COCKTAILS
-    'Mojito': 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&auto=format&fit=crop',
-    'Margarita': 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&auto=format&fit=crop',
-    'Cuba Libre': 'https://images.unsplash.com/photo-1574085733277-851d9d856a3a?w=600&auto=format&fit=crop',
-    'Pina Colada': 'https://images.unsplash.com/photo-1546171753-97d7676e4602?w=600&auto=format&fit=crop',
-    'Aperol Spritz': 'https://images.unsplash.com/photo-1560512823-829485b8bf24?w=600&auto=format&fit=crop',
-    'Gin Tonic': 'https://images.unsplash.com/photo-1524156868115-e696b44983db?w=600&auto=format&fit=crop',
-
-    # RACORITOARE
-    'Coca Cola 330ml': 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=600&auto=format&fit=crop',
-    'Fanta 330ml': '',
-    'Sprite 330ml': '',
-    'Apa plata 500ml': 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=600&auto=format&fit=crop',
-    'Apa minerala 500ml': '',
-    'Limonada cu menta 400ml': 'https://images.unsplash.com/photo-1621263764928-df1444c5e859?w=600&auto=format&fit=crop',
-    'Fresh de portocale 250ml': '',
-
-    # CAFEA
-    'Espresso': 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop',
-    'Cappuccino': 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=600&auto=format&fit=crop',
-    'Caffe Latte': 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=600&auto=format&fit=crop',
-    'Frappe': 'https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?w=600&auto=format&fit=crop',
-
-    # BERE
-    'Ursus Premium 400ml': '',
-    'Heineken 330ml': '',
-    'Stella Artois 330ml': '',
-    'Corona 330ml': '',
-}
+PRODUCT_IMAGES = {}
 
 PRODUCT_DESCRIPTIONS = {
     # PIZZA
@@ -177,11 +144,6 @@ PRODUCT_DESCRIPTIONS = {
     'Gin Tonic': 'Ingrediente: Gin 50ml, Apă tonică 200ml.',
 
     # RACORITOARE
-    'Coca Cola 330ml': 'Ingrediente: Sticlă Coca Cola 330ml.',
-    'Fanta 330ml': 'Ingrediente: Sticlă Fanta 330ml.',
-    'Sprite 330ml': 'Ingrediente: Sticlă Sprite 330ml.',
-    'Apa plata 500ml': 'Ingrediente: Sticlă Apă Plată 500ml.',
-    'Apa minerala 500ml': 'Ingrediente: Sticlă Apă Minerală 500ml.',
     'Limonada cu menta 400ml': 'Ingrediente: Lămâie 150g, Mentă proaspătă 10g, Zahăr 20g.',
     'Fresh de portocale 250ml': 'Ingrediente: Portocale proaspete 500g (250ml fresh).',
 
@@ -192,10 +154,6 @@ PRODUCT_DESCRIPTIONS = {
     'Frappe': 'Ingrediente: Lapte 100ml, Frișcă 50ml, Cafea solubilă 15g.',
 
     # BERE
-    'Ursus Premium 400ml': 'Ingrediente: Sticlă Ursus 400ml.',
-    'Heineken 330ml': 'Ingrediente: Sticlă Heineken 330ml.',
-    'Stella Artois 330ml': 'Ingrediente: Sticlă Stella 330ml.',
-    'Corona 330ml': 'Ingrediente: Sticlă Corona 330ml.',
 }
 
 def get_product_image_path(product_name, url):
