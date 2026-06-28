@@ -179,3 +179,13 @@ CHANNEL_LAYERS = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://restaurant.scs-solutions.eu',
+]
+
+ALLOWED_HOSTS = [
+    'restaurant.scs-solutions.eu',
+    'localhost',
+    '127.0.0.1',
+    '*' 
+]

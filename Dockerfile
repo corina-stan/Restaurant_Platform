@@ -17,7 +17,7 @@ FROM python:3.12-alpine
 WORKDIR /app
 
 # Install runtime libraries (PostgreSQL client libraries, Pillow image libraries, libffi, and shell)
-RUN apk add --no-cache postgresql-libs jpeg zlib libffi sh
+RUN apk add --no-cache postgresql-libs jpeg zlib libffi
 
 # Copy the compiled user packages from builder
 COPY --from=builder /root/.local /root/.local

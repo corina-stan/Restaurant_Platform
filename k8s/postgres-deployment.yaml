@@ -2,6 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc
+  namespace: restaurant-platform
   labels:
     app: postgres
 spec:
@@ -15,6 +16,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
+  namespace: restaurant-platform
   labels:
     app: postgres
 spec:
@@ -74,6 +76,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres-service
+  namespace: restaurant-platform
   labels:
     app: postgres
 spec:

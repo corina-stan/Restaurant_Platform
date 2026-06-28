@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
+  namespace: restaurant-platform
   labels:
     app: frontend
 spec:
@@ -16,8 +17,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          # The user will build and tag their frontend image, e.g., restaurant-frontend:latest
-          image: restaurant-frontend:latest
+          image: sestan/restaurant-frontend:2.0.3
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
@@ -46,6 +46,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: frontend-service
+  namespace: restaurant-platform
   labels:
     app: frontend
 spec:
